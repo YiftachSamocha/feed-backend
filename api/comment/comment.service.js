@@ -49,9 +49,9 @@ async function query(filterBy = { txt: '' }) {
 	try {
 		const criteria = _buildCriteria(filterBy)
 		const collection = await dbService.getCollection('comment')
-		var commentCursor = await collection.find(criteria)
+		var commentCursor = await collection.find(criteria).sort({ _id: -1 })
 		let comments = await commentCursor.toArray()
-		if (!comments || comments.length === 0) {
+		if (filterBy.txt === '' && (!comments || comments.length === 0)) {
 			comments = createData()
 			await collection.insertMany(comments)
 		}
