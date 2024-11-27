@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser'
 import { commentRoutes } from './api/comment/comment.routes.js'
 import { setupSocketAPI } from './services/socket.service.js'
 
-import { setupAsyncLocalStorage } from './middlewares/setupAls.middleware.js'
+// import { setupAsyncLocalStorage } from './middlewares/setupAls.middleware.js'
 
 const app = express()
 const server = http.createServer(app)
@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === 'production') {
     }
     app.use(cors(corsOptions))
 }
-app.all('*', setupAsyncLocalStorage)
+
 
 
 app.use('/api/comment', commentRoutes)

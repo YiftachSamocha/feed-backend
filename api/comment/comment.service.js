@@ -1,5 +1,6 @@
 import { logger } from '../../services/logger.service.js'
 import { dbService } from '../../services/db.service.js'
+import { getRandomInt } from '../../services/util.service.js'
 
 const emails = [
 	"john.doe@example.com",
@@ -48,7 +49,11 @@ async function query(filterBy = { txt: '' }) {
 		const criteria = _buildCriteria(filterBy)
 		const collection = await dbService.getCollection('comment')
 		var commentCursor = await collection.find(criteria)
-		const comments = commentCursor.toArray()
+		let comments = await commentCursor.toArray()
+		if (!comments || comments.length === 0) {
+			comments = createData()
+			await collection.insertMany(comments)
+		}
 		return comments
 	} catch (err) {
 		logger.error('cannot find comments', err)
@@ -68,21 +73,27 @@ async function add(comment) {
 	}
 }
 
-async function createData() {
-	
-
+function createData() {
+	return emails.map((email, idx) => {
+		const age = getRandomInt(20, 70)
+		const gender = Math.random() > 0.5 ? 'men' : 'women'
+		return { email, msg: msgs[idx], img: `https://randomuser.me/api/portraits/${gender}/${age}.jpg` }
+	})
 }
 
 
 
 function _buildCriteria(filterBy) {
-	const criteria = {
-	}
+	const { txt } = filterBy;
+	if (!txt) return {};
+	const txtRegex = new RegExp(txt, 'i');
 
-	return criteria
+	return {
+		$or: [
+			{ email: { $regex: txtRegex } },
+			{ msg: { $regex: txtRegex } },
+		],
+	};
 }
 
-function _buildSort(filterBy) {
-	if (!filterBy.sortField) return {}
-	return { [filterBy.sortField]: filterBy.sortDir }
-}
+
