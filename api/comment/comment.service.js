@@ -1,6 +1,7 @@
 import { logger } from '../../services/logger.service.js'
 import { dbService } from '../../services/db.service.js'
-import { getRandomInt } from '../../services/util.service.js'
+import CryptoJS from 'crypto-js'
+
 
 const emails = [
 	"john.doe@example.com",
@@ -64,6 +65,7 @@ async function query(filterBy = { txt: '' }) {
 
 async function add(comment) {
 	try {
+		if (!comment.img) comment.img = getImg(comment.email)
 		const collection = await dbService.getCollection('comment')
 		await collection.insertOne(comment)
 		return comment
@@ -75,13 +77,18 @@ async function add(comment) {
 
 function createData() {
 	return emails.map((email, idx) => {
-		const age = getRandomInt(20, 70)
-		const gender = Math.random() > 0.5 ? 'men' : 'women'
-		return { email, msg: msgs[idx], img: `https://randomuser.me/api/portraits/${gender}/${age}.jpg` }
+		return { email, msg: msgs[idx], img: getImg(email) }
 	})
 }
 
+function getImg(email, size = 100) {
+	const hash = md5(email)
+	return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`
+}
 
+function md5(string) {
+	return CryptoJS.MD5(string.trim().toLowerCase()).toString(CryptoJS.enc.Hex);
+}
 
 function _buildCriteria(filterBy) {
 	const { txt } = filterBy;
